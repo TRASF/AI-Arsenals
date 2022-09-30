@@ -64,11 +64,14 @@ function setup() {
 function draw() {
   background(220);
   render_state(GAMESTATE);
+  // ! State information log
+  // console.log(GAMESTATE);
 }
 
 // ! No need to put any attention to this part yet,
 function render_state(state) {
   let q = hex_size - 1;
+  let currentPlayer = "e";
   fill(colors[RED]);
   rect(
     hexagon_shapes[0][0].x - r,
@@ -110,10 +113,14 @@ function render_state(state) {
   fill(0);
   noStroke();
   text("Player vs Player", 500, r);
+  if (
+    GAMESTATE.player == "b" ? (currentPlayer = "Blue") : (currentPlayer = "Red")
+  );
+  text("Current player:" + currentPlayer, 500, 50);
   if (state.isTerminal()) {
-    text("Winner: " + state._winner, 500, r * 2);
-    text(RED + "'s Utility: " + state.utility(RED), 500, r * 3);
-    text(BLUE + "'s Utility: " + state.utility(BLUE), 500, r * 4);
+    text("Winner: " + state._winner, 500, r * 3.5);
+    text(RED + "'s Utility: " + state.utility(RED), 500, r * 4.5);
+    text(BLUE + "'s Utility: " + state.utility(BLUE), 500, r * 5.5);
   }
 }
 // ! Click handler function.

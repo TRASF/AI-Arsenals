@@ -74,24 +74,6 @@ class Agent {
   // EVALUATION FUNCTIONS
 
   evaluate(state) {
-    let blueWallCount = 0;
-    let redWallCount = 0;
-    let hex_size = state.hex_size;
-    for (let i = 0; i < hex_size; i++) {
-      if (state.board[i][0] == BLUE || state.board[i][hex_size - 1] == BLUE) {
-        //แก้เป็นอีกฝั่งคือคนละสี?
-        blueWallCount++;
-      }
-      if (state.board[0][i] == RED || state.board[hex_size - 1][i] == RED) {
-        redWallCount++;
-      }
-    }
-    if (this.player == RED) {
-      return -redWallCount;
-    } else {
-      return -blueWallCount;
-    }
-    //ทำยังไงก็ได้ให้ใช้บล็อคน้อยที่สุดเพื่อจบเกม
     return Math.random();
   }
 
