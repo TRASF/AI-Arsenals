@@ -74,7 +74,29 @@ class Agent {
   // EVALUATION FUNCTIONS
 
   evaluate(state) {
-    return Math.random();
+    let blueWallCount = 0;
+    let redWallCount = 0;
+    let hex_size = state.hex_size;
+
+    if (
+      (action.i > 0 && action.i < hex_size - 1) ||
+      (action.j > 0 && action.j < hex_size - 1)
+    ) {
+      return -100;
+    }
+    for (let i = 0; i < hex_size; i++) {
+      if (state.board[i][0] == BLUE || state.board[i][hex_size - 1] == BLUE) {
+        blueWallCount++;
+      }
+      if (state.board[0][i] == RED || state.board[hex_size - 1][i] == RED) {
+        redWallCount++;
+      }
+    }
+    if (this.player == RED) {
+      return -redWallCount;
+    } else {
+      return -blueWallCount;
+    }
   }
 
   _evaluate(state) {

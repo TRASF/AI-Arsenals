@@ -16,7 +16,7 @@ class Agent {
   searchMove(initial_state, keepBestMove) {
     let actions = initial_state.actions();
 
-    // ! ===== Dept limit =====
+    // ! ===== Dept limit =========
 
     if (actions.length < 20) {
       this.depthLimit = 4;
@@ -28,7 +28,7 @@ class Agent {
       this.depthLimit = 8;
     }
 
-    // ! =====================
+    // ! ==== End Dept limit ======
 
     let curMaxVal = Number.NEGATIVE_INFINITY;
 
@@ -39,15 +39,21 @@ class Agent {
       let action = actions[i];
       let newState = initial_state.transition(action);
       let minimaxVal = this.minVal(newState, 1, action);
-      console.log("option:", action, minimaxVal, "...");
       if (minimaxVal > curMaxVal) {
         curMaxVal = minimaxVal;
         this.curBestMove = action;
+        console.log("Aplha-Beta Option:", action, minimaxVal, "...");
+        console.log(
+          "Alpha-Beta Best Move: ",
+          action.i,
+          action.j,
+          " with " + minimaxVal
+        );
         keepBestMove(action);
       }
     }
 
-    // ! ==================================================
+    // ! ============ End Process ==========================
 
     return this.curBestMove; // not used.
   }
@@ -72,10 +78,12 @@ class Agent {
       );
 
       // ! ======== Implement Part ==============
+
       if (minimaxVal <= alpha) return minimaxVal;
       beta = Math.min(beta, minimaxVal);
       if (beta <= alpha) break;
-      // ! ======================================
+
+      // ! ======= End Implement Part ===========
     }
 
     return beta;
@@ -103,13 +111,13 @@ class Agent {
       if (minimaxVal >= beta) return minimaxVal;
       alpha = Math.max(alpha, minimaxVal);
       if (beta <= alpha) break;
-      // ! ======================================
+      // ! ======= End Implement Part ===========
     }
 
     return alpha;
   }
 
-  // ! EVALUATION FUNCTIONS
+  // ! =============== EVALUATION FUNCTIONS ===============
   /**
    * ! Step
    *   + Eval center space  to -100
@@ -139,15 +147,10 @@ class Agent {
       for (let j = 0; j < hex_size; j++) {
         // ! CHECK WALL CONDITION
         if (action.i == i && action.j < hex_size - 1) return wallCount;
-
-        // ! ===================================================
       }
     }
 
-    // ! ===================================================
-  }
-  _evaluate(state) {
-    return Math.random();
+    // ! =========== End Process ===========================
   }
   __evaluate(state, action) {
     // a dummy evaluation function that
@@ -169,6 +172,11 @@ class Agent {
     } else {
       return -blueWallCount;
     }
+  }
+
+  // ! =========== End EVALUATION FUNCTIONS ================
+  _evaluate(state) {
+    return Math.random();
   }
 }
 

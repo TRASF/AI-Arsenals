@@ -27,10 +27,16 @@ class Agent {
       let action = actions[i];
       let newState = initial_state.transition(action);
       let minimaxVal = this.minVal(newState, 1, action);
-      console.log("option:", action, minimaxVal, "...");
       if (minimaxVal > curMaxVal) {
         curMaxVal = minimaxVal;
         this.curBestMove = action;
+        console.log("minimax Option:", action, minimaxVal, "...");
+        console.log(
+          "MiniMax Best Move: ",
+          action.i,
+          action.j,
+          " with " + minimaxVal
+        );
         keepBestMove(action);
       }
     }
