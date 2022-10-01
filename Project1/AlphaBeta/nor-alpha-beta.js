@@ -76,16 +76,15 @@ class Agent {
         minimaxVal,
         this.maxVal(newState, depth + 1, action)
       );
+      beta = minimaxVal;
 
       // ! ======== Implement Part ==============
 
       if (minimaxVal <= alpha) return minimaxVal;
-      beta = Math.min(beta, minimaxVal);
       if (beta <= alpha) break;
 
       // ! ======= End Implement Part ===========
     }
-
     return beta;
   }
 
@@ -113,7 +112,6 @@ class Agent {
       if (beta <= alpha) break;
       // ! ======= End Implement Part ===========
     }
-
     return alpha;
   }
 
