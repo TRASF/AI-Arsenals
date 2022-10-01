@@ -1,5 +1,8 @@
 /**
  * TODO: Project crawling [Comments].
+ * ! Size 11: Alpha-Beta 6 - 2 Minimax
+ * ! Size 7: Alpha-Beta 6 - 1 Minimax
+ * ! Size 5: Alpha-Beta 6 - 0 Minimax
  */
 
 // ! Variables for players [Red and Blue].
@@ -10,7 +13,7 @@ let BLUE = "b";
 let EMPTY = "e";
 
 // ! Variable for map size.
-let hex_size = 5; // 5, 7, or 11 are possible
+let hex_size = 11; // 5, 7, or 11 are possible
 
 // ! Variable for players and emyty space appearance.
 let colors = { r: "#ff0000", b: "#0000ff", e: "#ffffff" };
@@ -112,15 +115,17 @@ function render_state(state) {
 
   fill(0);
   noStroke();
-  text("Player vs Player", 500, r);
+  text("Alpha-Beta vs Minimax", 500, r);
   if (
     GAMESTATE.player == "b" ? (currentPlayer = "Blue") : (currentPlayer = "Red")
   );
   text("Current player:" + currentPlayer, 500, 50);
+  let Winner = "None";
   if (state.isTerminal()) {
-    text("Winner: " + state._winner, 500, r * 3.5);
-    text(RED + "'s Utility: " + state.utility(RED), 500, r * 4.5);
-    text(BLUE + "'s Utility: " + state.utility(BLUE), 500, r * 5.5);
+    state._winner == "b" ? (Winner = "Blue") : (Winner = "Red");
+    text("Winner: " + Winner, 500, r * 3.5);
+    text("RED" + "'s Utility: " + state.utility(RED), 500, r * 4.5);
+    text("BLUE" + "'s Utility: " + state.utility(BLUE), 500, r * 5.5);
   }
 }
 // ! Click handler function.

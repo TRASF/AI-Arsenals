@@ -1,4 +1,5 @@
 // ! Most of the game action rely in this function.
+// ! Alpha-beta win 60%.
 class HexGameState {
   constructor(hex_size, board, player) {
     this.hex_size = hex_size;
@@ -123,9 +124,10 @@ class HexGameState {
             if (p == this.board[u][v]) {
               if (p == RED) {
                 redDSU.union(i + "," + j, u + "," + v);
-                console.log(redDSU);
+                // console.log("REDDSU", redDSU);
               } else {
                 blueDSU.union(i + "," + j, u + "," + v);
+                // console.log("BlueDSU", blueDSU);
               }
             }
           }

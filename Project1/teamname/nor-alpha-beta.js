@@ -2,6 +2,9 @@
 // EXAMPLE AGENT: YOU CAN COPY AND MODIFY THIS AGENT
 // ========================================================
 
+let alpha = Number.POSITIVE_INFINITY;
+let beta = Number.NEGATIVE_INFINITY;
+
 class Agent {
   constructor(player) {
     this.player = player;
@@ -12,6 +15,9 @@ class Agent {
   // START MINIMAX ALGORITHM (WITH ADAPTIVE DEPTH LIMIT)
   searchMove(initial_state, keepBestMove) {
     let actions = initial_state.actions();
+
+    // ! ===== Dept limit =====
+
     if (actions.length < 20) {
       this.depthLimit = 4;
     }
@@ -21,15 +27,18 @@ class Agent {
     if (actions.length < 6) {
       this.depthLimit = 8;
     }
-    //TODO
-    let alpha = Number.NEGATIVE_INFINITY;
-    let beta = Number.POSITIVE_INFINITY;
+
+    // ! =====================
+
     let curMaxVal = Number.NEGATIVE_INFINITY;
+
+    // ! =============== Process ===========================
+
     this.curBestMove = actions[0];
     for (let i = 0; i < actions.length; i++) {
       let action = actions[i];
       let newState = initial_state.transition(action);
-      let minimaxVal = this.minVal(newState, 1);
+      let minimaxVal = this.minVal(newState, 1, action);
       console.log("option:", action, minimaxVal, "...");
       if (minimaxVal > curMaxVal) {
         curMaxVal = minimaxVal;
@@ -37,51 +46,112 @@ class Agent {
         keepBestMove(action);
       }
     }
+
+    // ! ==================================================
+
     return this.curBestMove; // not used.
   }
-
-  minVal(state, depth) {
-    if (state.isTerminal()) {
+  // TODO: Do this part 1st
+  // + Implement and adapt minimax to alpha-beta.
+  minVal(state, depth, action) {
+    if (state.isTerminal())
       return state.utility(this.player) * Number.POSITIVE_INFINITY;
-    }
-    if (depth >= this.depthLimit) {
-      return this.evaluate(state);
-    }
+
+    // ! End loop condition
+    if (depth >= this.depthLimit) return this.evaluate(state, action);
     let minimaxVal = Number.POSITIVE_INFINITY;
     let actions = state.actions();
+
     for (let i = 0; i < actions.length; i++) {
       let action = actions[i];
       let newState = state.transition(action);
-      minimaxVal = Math.min(minimaxVal, this.maxVal(newState, depth + 1));
+
+      minimaxVal = Math.min(
+        minimaxVal,
+        this.maxVal(newState, depth + 1, action)
+      );
+
+      // ! ======== Implement Part ==============
+      if (minimaxVal <= alpha) return minimaxVal;
+      beta = Math.min(beta, minimaxVal);
+      if (beta <= alpha) break;
+      // ! ======================================
     }
-    return minimaxVal;
+
+    return beta;
   }
 
-  maxVal(state, depth) {
-    if (state.isTerminal()) {
+  maxVal(state, depth, action) {
+    if (state.isTerminal())
       return state.utility(this.player) * Number.POSITIVE_INFINITY;
-    }
-    if (depth >= this.depthLimit) {
-      return this.evaluate(state);
-    }
+
+    if (depth >= this.depthLimit) return this.evaluate(state, action);
+
     let minimaxVal = Number.NEGATIVE_INFINITY;
     let actions = state.actions();
+
     for (let i = 0; i < actions.length; i++) {
       let action = actions[i];
       let newState = state.transition(action);
-      minimaxVal = Math.max(minimaxVal, this.minVal(newState, depth + 1));
+
+      minimaxVal = Math.max(
+        minimaxVal,
+        this.minVal(newState, depth + 1, action)
+      );
+
+      // ! ======== Implement Part ==============
+      if (minimaxVal >= beta) return minimaxVal;
+      alpha = Math.max(alpha, minimaxVal);
+      if (beta <= alpha) break;
+      // ! ======================================
     }
-    return minimaxVal;
+
+    return alpha;
   }
 
-  // EVALUATION FUNCTIONS
+  // ! EVALUATION FUNCTIONS
+  /**
+   * ! Step
+   *   + Eval center space  to -100
+   *     = [1, 1], [1, 2], [1, 3] <
+   *     = [2, 1], [2, 2], [3, 3]   < Set these eval val to -100
+   *     = [2, 1], [2, 2], [3, 3] <
+   *   + Check wall
+   *     = [i, j - 1] <
+   *     = [i, j - 1]  < If there are pieces against the all count it, then convert it to negative for eval.
+   *     = [i, j - 1] <
+   *
+   */
+  evaluate(state, action) {
+    let hex_size = state.hex_size;
 
-  evaluate(state) {
+    // ! CALL CHECK WALL FUNCTION
+    let wallCount = this._evaluate(state);
+    if (
+      (action.i > 0 && action.i < hex_size - 1) ||
+      (action.j > 0 && action.j < hex_size - 1)
+    ) {
+      return -100;
+    }
+    // ! =============== Process ===========================
+
+    for (let i = 0; i < hex_size; i++) {
+      for (let j = 0; j < hex_size; j++) {
+        // ! CHECK WALL CONDITION
+        if (action.i == i && action.j < hex_size - 1) return wallCount;
+
+        // ! ===================================================
+      }
+    }
+
+    // ! ===================================================
+  }
+  _evaluate(state) {
     return Math.random();
   }
-
-  _evaluate(state) {
+  __evaluate(state, action) {
     // a dummy evaluation function that
+
     // encourages the agent to not put piece agaist the wall
     let blueWallCount = 0;
     let redWallCount = 0;
@@ -218,10 +288,9 @@ class HexGameState {
 
     for (let i = 0; i < this.hex_size; i++) {
       for (let u = 0; u < this.hex_size; u++) {
-        // check if BLUE wins
         let subset1 = blueDSU.find(i + ",0");
         let subset2 = blueDSU.find(u + "," + (this.hex_size - 1));
-        // console.log([subset1, subset2])
+        // console.log([subset1, subset2]);
         if (subset1 == subset2 && this.board[i][0] == BLUE) {
           this._winner = BLUE;
           break;

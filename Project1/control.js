@@ -1,18 +1,18 @@
 let TIMELIMIT = 10000; // 10s
-
 function setUpControl() {
   button = createButton("START");
-  button.position(20, 360);
+  button.position(300, 10);
   button.mousePressed(async () => {
     button.remove();
-    let blueAgent = "players/nor-alpha-beta.js"; //maybe under teamname
+    let blueAgent = "teamname/nor-alpha-beta.js";
+    // let blueAgent = "players/nor-alpha-beta.js"; //maybe under teamname
     let redAgent = "players/nor-minimax.js";
 
     while (!GAMESTATE.isTerminal()) {
-      let curAgent = blueAgent;
+      let curAgent = redAgent;
 
       if (GAMESTATE.player == RED) {
-        curAgent = redAgent;
+        curAgent = blueAgent;
       }
       //   console.log(curPlayer.player)
       let action = await takeTurn(curAgent);

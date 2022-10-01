@@ -26,7 +26,7 @@ class Agent {
     for (let i = 0; i < actions.length; i++) {
       let action = actions[i];
       let newState = initial_state.transition(action);
-      let minimaxVal = this.minVal(newState, 1);
+      let minimaxVal = this.minVal(newState, 1, action);
       console.log("option:", action, minimaxVal, "...");
       if (minimaxVal > curMaxVal) {
         curMaxVal = minimaxVal;
@@ -37,61 +37,69 @@ class Agent {
     return this.curBestMove; // not used.
   }
 
-  minVal(state, depth) {
+  minVal(state, depth, action) {
     if (state.isTerminal()) {
       return state.utility(this.player) * Number.POSITIVE_INFINITY;
     }
     if (depth >= this.depthLimit) {
-      return this.evaluate(state);
+      return this.evaluate(state, action);
     }
     let minimaxVal = Number.POSITIVE_INFINITY;
     let actions = state.actions();
     for (let i = 0; i < actions.length; i++) {
       let action = actions[i];
       let newState = state.transition(action);
-      minimaxVal = Math.min(minimaxVal, this.maxVal(newState, depth + 1));
+      minimaxVal = Math.min(
+        minimaxVal,
+        this.maxVal(newState, depth + 1, action)
+      );
     }
     return minimaxVal;
   }
 
-  maxVal(state, depth) {
+  maxVal(state, depth, action) {
     if (state.isTerminal()) {
       return state.utility(this.player) * Number.POSITIVE_INFINITY;
     }
     if (depth >= this.depthLimit) {
-      return this.evaluate(state);
+      return this.evaluate(state, action);
     }
     let minimaxVal = Number.NEGATIVE_INFINITY;
     let actions = state.actions();
     for (let i = 0; i < actions.length; i++) {
       let action = actions[i];
       let newState = state.transition(action);
-      minimaxVal = Math.max(minimaxVal, this.minVal(newState, depth + 1));
+      minimaxVal = Math.max(
+        minimaxVal,
+        this.minVal(newState, depth + 1, action)
+      );
     }
     return minimaxVal;
   }
 
   // EVALUATION FUNCTIONS
 
-  evaluate(state) {
-    let blueWallCount = 0;
-    let redWallCount = 0;
-    let hex_size = state.hex_size;
-    for (let i = 0; i < hex_size; i++) {
-      if (state.board[i][0] == BLUE || state.board[i][hex_size - 1] == BLUE) {
-        //แก้เป็นอีกฝั่งคือคนละสี?
-        blueWallCount++;
-      }
-      if (state.board[0][i] == RED || state.board[hex_size - 1][i] == RED) {
-        redWallCount++;
-      }
-    }
-    if (this.player == RED) {
-      return -redWallCount;
-    } else {
-      return -blueWallCount;
-    }
-    //ทำยังไงก็ได้ให้ใช้บล็อคน้อยที่สุดเพื่อจบเกม
+  evaluate(state, action) {
+    // let hex_size = state.hex_size;
+    // // ! CALL CHECK WALL FUNCTION
+    // let wallCount = this._evaluate(state);
+    // if (
+    //   (action.i > 0 && action.i < hex_size - 1) ||
+    //   (action.j > 0 && action.j < hex_size - 1)
+    // ) {
+    //   return -100;
+    // }
+    // // ! =============== Process ===========================
+
+    // for (let i = 0; i < hex_size; i++) {
+    //   for (let j = 0; j < hex_size; j++) {
+    //     // ! ===== CHECK WALL CONDITION =====
+
+    //     if (action.i == i && action.j < hex_size - 1) return wallCount;
+
+    //     // ! ================================
+    //   }
+    // }
     return Math.random();
   }
 
