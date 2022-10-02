@@ -1,16 +1,7 @@
 // ========================================================
 // EXAMPLE AGENT: YOU CAN COPY AND MODIFY THIS AGENT
-/**
- * Group Member
- * Jomchai Chongthanakorn 6388013
- * Thantamrong Jirapatmaneechot 6388074
- * Chattaporn Chuenamnuaychai 6388186
- *
- */
 // ========================================================
 
-let beta = Number.NEGATIVE_INFINITY;
-let alpha = Number.POSITIVE_INFINITY;
 class Agent {
   constructor(player) {
     this.player = player;
@@ -21,180 +12,99 @@ class Agent {
   // START MINIMAX ALGORITHM (WITH ADAPTIVE DEPTH LIMIT)
   searchMove(initial_state, keepBestMove) {
     let actions = initial_state.actions();
-    // ! ===== Dept limit =========
 
-    if (actions.length < 20) {
+    if (actions.length < 30) {
       this.depthLimit = 4;
     }
-    if (actions.length < 10) {
+    if (actions.length < 20) {
       this.depthLimit = 6;
     }
-    if (actions.length < 6) {
+    if (actions.length < 10) {
       this.depthLimit = 8;
     }
-
-    // ! ==== End Dept limit ======
-
+    if (actions.length < 6) {
+      this.depthLimit = 10;
+    }
     let curMaxVal = Number.NEGATIVE_INFINITY;
-
-    // ! =============== Process ===========================
-
     this.curBestMove = actions[0];
-    // console.log(actions.length);
     for (let i = 0; i < actions.length; i++) {
       let action = actions[i];
       let newState = initial_state.transition(action);
-      // console.log("Alpha", alpha, "Beta", beta);
-      let minimaxVal = this.minVal(newState, 1, action);
+      let minimaxVal = this.minVal(newState, 1);
+      console.log("option:", action, minimaxVal, "...");
       if (minimaxVal > curMaxVal) {
         curMaxVal = minimaxVal;
         this.curBestMove = action;
-        // console.log("Aplha-Beta Option:", action, minimaxVal, "...");
-        // console.log(
-        // this.player,
-        // "Alpha-Beta Best Move: ",
-        // action.i,
-        // action.j,
-        // " with " + minimaxVal
-        // );
         keepBestMove(action);
       }
     }
-
-    // ! ============ End Process ==========================
-
     return this.curBestMove; // not used.
   }
-  // TODO: Do this part 1st
-  // + Implement and adapt minimax to alpha-beta.
-  minVal(state, depth, action) {
-    if (state.isTerminal())
+
+  minVal(state, depth) {
+    if (state.isTerminal()) {
       return state.utility(this.player) * Number.POSITIVE_INFINITY;
-
-    // ! End loop condition
-    if (depth >= this.depthLimit) return this.evaluate(state, action);
-
+    }
+    if (depth >= this.depthLimit) {
+      return this.evaluate(state);
+    }
     let minimaxVal = Number.POSITIVE_INFINITY;
     let actions = state.actions();
-
     for (let i = 0; i < actions.length; i++) {
       let action = actions[i];
       let newState = state.transition(action);
-
-      minimaxVal = Math.min(
-        minimaxVal,
-        this.maxVal(newState, depth + 1, action)
-      );
-
-      // ! ======== Implement Part ==============
-
-      beta = minimaxVal;
-      if (beta <= alpha) break;
-
-      // ! ======= End Implement Part ===========
+      minimaxVal = Math.min(minimaxVal, this.maxVal(newState, depth + 1));
     }
     return minimaxVal;
   }
 
-  maxVal(state, depth, action) {
-    if (state.isTerminal())
+  maxVal(state, depth) {
+    if (state.isTerminal()) {
       return state.utility(this.player) * Number.POSITIVE_INFINITY;
-
-    if (depth >= this.depthLimit) return this.evaluate(state, action);
-
+    }
+    if (depth >= this.depthLimit) {
+      return this.evaluate(state);
+    }
     let minimaxVal = Number.NEGATIVE_INFINITY;
     let actions = state.actions();
-
     for (let i = 0; i < actions.length; i++) {
       let action = actions[i];
       let newState = state.transition(action);
-
-      minimaxVal = Math.max(
-        minimaxVal,
-        this.minVal(newState, depth + 1, action)
-      );
-
-      // ! ======== Implement Part ==============
-
-      alpha = minimaxVal;
-      if (beta <= alpha) break;
-
-      // ! ======= End Implement Part ===========
+      minimaxVal = Math.max(minimaxVal, this.minVal(newState, depth + 1));
     }
     return minimaxVal;
   }
 
-  // ! =============== EVALUATION FUNCTIONS ===============
-  /**
-   * ! Step
-   *   + Eval center space  to -100
-   *     = [1, 1], [1, 2], [1, 3] <
-   *     = [2, 1], [2, 2], [3, 3]   < Set these eval val to -100
-   *     = [2, 1], [2, 2], [3, 3] <
-   *   + Check wall
-   *     = [i, j - 1] <
-   *     = [i, j - 1]  < If there are pieces against the all count it, then convert it to negative for eval.
-   *     = [i, j - 1] <
-   *
-   */
-  evaluate(state, action) {
-    let Bluecount = 0;
-    let Redcount = 0;
+  // EVALUATION FUNCTIONS
+
+  evaluate(state) {
+    let blueWallCount = 0;
+    let redWallCount = 0;
     let hex_size = state.hex_size;
-    let SurroundRows = [-1, -1, 0, 0, 1, 1];
-    let SurroundCols = [0, 1, -1, 1, -1, 0];
-    let Near = [-1, 0, 1];
-    let wallCount = this._evaluate(state);
+
     if (
       (action.i > 0 && action.i < hex_size - 1) ||
       (action.j > 0 && action.j < hex_size - 1)
     ) {
       return -100;
     }
-    if (
-      action.i == Math.floor(hex_size / 2) &&
-      action.j == Math.floor(hex_size / 2)
-    )
-      return -1000;
-    // ! =============== Process ===========================
-
     for (let i = 0; i < hex_size; i++) {
-      for (let j = 0; j < hex_size; j++) {
-        // ! CHECK WALL CONDITION
-        if (action.i == i && action.j < hex_size - 1) return wallCount;
-
-        for (let k = 0; k < 3; k++) {
-          if (
-            state.board[i][j + Near[k]] == BLUE ||
-            i == Math.floor(hex_size / 2) + SurroundRows[k] ||
-            i == Math.floor(hex_size / 2) + SurroundCols[k]
-          ) {
-            Bluecount++;
-          } else {
-            Redcount++;
-          }
-        }
-        for (let k = 0; k < 6; k++) {
-          try {
-            if (state.board[i + SurroundRows[k]][j + SurroundCols[k]] == BLUE) {
-              Bluecount++;
-            } else {
-              Redcount++;
-            }
-          } catch (error) {}
-        }
+      if (state.board[i][0] == BLUE || state.board[i][hex_size - 1] == BLUE) {
+        blueWallCount++;
+      }
+      if (state.board[0][i] == RED || state.board[hex_size - 1][i] == RED) {
+        redWallCount++;
       }
     }
     if (this.player == RED) {
-      return Redcount;
+      return -redWallCount;
     } else {
-      return Bluecount;
+      return -blueWallCount;
     }
-    // ! =========== End Process ===========================
   }
-  __evaluate(state, action) {
-    // a dummy evaluation function that
 
+  _evaluate(state) {
+    // a dummy evaluation function that
     // encourages the agent to not put piece agaist the wall
     let blueWallCount = 0;
     let redWallCount = 0;
@@ -212,11 +122,6 @@ class Agent {
     } else {
       return -blueWallCount;
     }
-  }
-
-  // ! =========== End EVALUATION FUNCTIONS ================
-  _evaluate(state) {
-    return Math.random();
   }
 }
 
@@ -336,9 +241,10 @@ class HexGameState {
 
     for (let i = 0; i < this.hex_size; i++) {
       for (let u = 0; u < this.hex_size; u++) {
+        // check if BLUE wins
         let subset1 = blueDSU.find(i + ",0");
         let subset2 = blueDSU.find(u + "," + (this.hex_size - 1));
-        // console.log([subset1, subset2]);
+        // console.log([subset1, subset2])
         if (subset1 == subset2 && this.board[i][0] == BLUE) {
           this._winner = BLUE;
           break;

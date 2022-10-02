@@ -13,7 +13,7 @@ let BLUE = "b";
 let EMPTY = "e";
 
 // ! Variable for map size.
-let hex_size = 11; // 5, 7, or 11 are possible
+let hex_size = 5; // 5, 7, or 11 are possible
 
 // ! Variable for players and emyty space appearance.
 let colors = { r: "#ff0000", b: "#0000ff", e: "#ffffff" };

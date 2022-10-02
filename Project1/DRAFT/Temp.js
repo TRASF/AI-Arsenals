@@ -2,6 +2,8 @@
 // EXAMPLE AGENT: YOU CAN COPY AND MODIFY THIS AGENT
 // ========================================================
 
+let beta = Number.NEGATIVE_INFINITY;
+let alpha = Number.POSITIVE_INFINITY;
 class Agent {
   constructor(player) {
     this.player = player;
@@ -12,6 +14,10 @@ class Agent {
   // START MINIMAX ALGORITHM (WITH ADAPTIVE DEPTH LIMIT)
   searchMove(initial_state, keepBestMove) {
     let actions = initial_state.actions();
+    // ! ===== Dept limit =========
+    // if (actions.length < 30) {
+    //   this.depthLimit = 3;
+    // }
     if (actions.length < 20) {
       this.depthLimit = 4;
     }
@@ -21,86 +27,243 @@ class Agent {
     if (actions.length < 6) {
       this.depthLimit = 8;
     }
+
+    // ! ==== End Dept limit ======
+
     let curMaxVal = Number.NEGATIVE_INFINITY;
+
+    // ! =============== Process ===========================
+
     this.curBestMove = actions[0];
+    // console.log(actions.length);
     for (let i = 0; i < actions.length; i++) {
       let action = actions[i];
       let newState = initial_state.transition(action);
-      let minimaxVal = this.minVal(newState, 1);
-      console.log("option:", action, minimaxVal, "...");
+      // console.log("Alpha", alpha, "Beta", beta);
+      let minimaxVal = this.minVal(newState, 1, action);
       if (minimaxVal > curMaxVal) {
         curMaxVal = minimaxVal;
         this.curBestMove = action;
+        // console.log("Aplha-Beta Option:", action, minimaxVal, "...");
+        // console.log(
+        // this.player,
+        // "Alpha-Beta Best Move: ",
+        // action.i,
+        // action.j,
+        // " with " + minimaxVal
+        // );
         keepBestMove(action);
       }
     }
+
+    // ! ============ End Process ==========================
+
     return this.curBestMove; // not used.
   }
-
-  minVal(state, depth) {
-    if (state.isTerminal()) {
+  // TODO: Do this part 1st
+  // + Implement and adapt minimax to alpha-beta.
+  minVal(state, depth, action) {
+    if (state.isTerminal())
       return state.utility(this.player) * Number.POSITIVE_INFINITY;
-    }
-    if (depth >= this.depthLimit) {
-      return this.evaluate(state);
-    }
+
+    // ! End loop condition
+    if (depth >= this.depthLimit) return this.evaluate(state, action);
+
     let minimaxVal = Number.POSITIVE_INFINITY;
     let actions = state.actions();
+
     for (let i = 0; i < actions.length; i++) {
       let action = actions[i];
       let newState = state.transition(action);
-      minimaxVal = Math.min(minimaxVal, this.maxVal(newState, depth + 1));
+
+      minimaxVal = Math.min(
+        minimaxVal,
+        this.maxVal(newState, depth + 1, action)
+      );
+
+      // ! ======== Implement Part ==============
+
+      beta = minimaxVal;
+      if (beta <= alpha) break;
+
+      // ! ======= End Implement Part ===========
     }
     return minimaxVal;
   }
 
-  maxVal(state, depth) {
-    if (state.isTerminal()) {
+  maxVal(state, depth, action) {
+    if (state.isTerminal())
       return state.utility(this.player) * Number.POSITIVE_INFINITY;
-    }
-    if (depth >= this.depthLimit) {
-      return this.evaluate(state);
-    }
+
+    if (depth >= this.depthLimit) return this.evaluate(state, action);
+
     let minimaxVal = Number.NEGATIVE_INFINITY;
     let actions = state.actions();
+
     for (let i = 0; i < actions.length; i++) {
       let action = actions[i];
       let newState = state.transition(action);
-      minimaxVal = Math.max(minimaxVal, this.minVal(newState, depth + 1));
+
+      minimaxVal = Math.max(
+        minimaxVal,
+        this.minVal(newState, depth + 1, action)
+      );
+
+      // ! ======== Implement Part ==============
+
+      alpha = minimaxVal;
+      if (beta <= alpha) break;
+
+      // ! ======= End Implement Part ===========
     }
     return minimaxVal;
   }
 
-  // EVALUATION FUNCTIONS
-
-  evaluate(state) {
-    let blueWallCount = 0;
-    let redWallCount = 0;
+  // ! =============== EVALUATION FUNCTIONS ===============
+  /**
+   * ! Step
+   *   + Eval center space  to -100
+   *     = [1, 1], [1, 2], [1, 3] <
+   *     = [2, 1], [2, 2], [3, 3]   < Set these eval val to -100
+   *     = [2, 1], [2, 2], [3, 3] <
+   *   + Check wall
+   *     = [i, j - 1] <
+   *     = [i, j - 1]  < If there are pieces against the all count it, then convert it to negative for eval.
+   *     = [i, j - 1] <
+   *
+   */
+  evaluate(state, action) {
+    let Bluecount = 0;
+    let Redcount = 0;
     let hex_size = state.hex_size;
-
+    let wallCount = this._evaluate(state);
+    let Near = [-1, 0, 1];
+    let SurroundRows = [-1, -1, 0, 0, 1, 1];
+    let SurroundCols = [0, 1, -1, 1, -1, 0];
     if (
       (action.i > 0 && action.i < hex_size - 1) ||
       (action.j > 0 && action.j < hex_size - 1)
     ) {
       return -100;
     }
+    if (
+      (action.i == Math.floor(hex_size / 2) && action.j == 0) ||
+      (action.i == Math.floor(hex_size / 2) &&
+        action.j == Math.floor(hex_size - 1))
+    )
+      return -1000;
+
+    // ! =============== Process ===========================
+
     for (let i = 0; i < hex_size; i++) {
-      if (state.board[i][0] == BLUE || state.board[i][hex_size - 1] == BLUE) {
-        blueWallCount++;
-      }
-      if (state.board[0][i] == RED || state.board[hex_size - 1][i] == RED) {
-        redWallCount++;
+      for (let j = 0; j < hex_size; j++) {
+        // ! CHECK WALL CONDITION
+        if (action.i == i && action.j < hex_size - 1) return wallCount;
+
+        // ! =============== Process ===========================
+        for (let k = 0; k < 3; k++) {
+          try {
+            if (state.board[i + Near[k]][j + Near[k]] == BLUE) {
+              Bluecount++;
+            } else {
+              Redcount++;
+            }
+          } catch (error) {}
+        }
+        // ! =========== End Process ===========================
+
+        // ! =============== Process ===========================
+        for (let k = 0; k < 6; k++) {
+          try {
+            if (state.board[i + SurroundRows[k]][j + SurroundCols[k]] == BLUE) {
+              Bluecount++;
+            } else if (
+              state.board[i + SurroundRows[k]][j + SurroundCols[k]] == RED
+            ) {
+              Redcount++;
+            }
+          } catch (error) {}
+        }
+        // ! =========== End Process ===========================
+
+        // ! =============== Process ===========================
+        if (
+          (state.board[Math.floor(hex_size / 2)][j - 1] &&
+            state.board[Math.floor(hex_size / 2)][j] == BLUE) ||
+          (state.board[Math.floor(hex_size / 2)][j] &&
+            state.board[Math.floor(hex_size / 2)][j + 1] == BLUE)
+        ) {
+          Bluecount++;
+        }
+        if (
+          (state.board[i][Math.floor(hex_size / 2)] == RED &&
+            state.board[Math.floor(hex_size / 2)][Math.floor(hex_size / 2)] ==
+              RED) ||
+          (state.board[Math.floor(hex_size / 2)][Math.floor(hex_size / 2)] ==
+            RED &&
+            state.board[hex_size - i][Math.floor(hex_size / 2)] == RED)
+        ) {
+          Redcount++;
+        }
+        // ! =========== End Process ===========================
+
+        // ! =============== Process ===========================
+
+        if (
+          state.board[Math.floor(hex_size / 2)][j - 1] == RED ||
+          state.board[Math.floor(hex_size / 2)][j + 1] == RED
+        ) {
+          if (
+            state.board[Math.floor(hex_size / 2) - 1][j] == BLUE ||
+            state.board[Math.floor(hex_size / 2) + 1][j] == BLUE ||
+            state.board[Math.floor(hex_size / 2) + 1][j - 1] == BLUE ||
+            state.board[Math.floor(hex_size / 2) - 1][j + 1] == BLUE
+          ) {
+            Bluecount++;
+          }
+        }
+
+        // -----------------------------------------------------
+
+        if (
+          state.board[i - 1][Math.floor(hex_size / 2)] == BLUE ||
+          state.board[i + 1][Math.floor(hex_size / 2)] == BLUE
+        ) {
+          if (
+            state.board[i - 1][Math.floor(hex_size / 2) - 1] == RED ||
+            state.board[i + 1][Math.floor(hex_size / 2) - 1] == RED ||
+            state.board[i - 1][Math.floor(hex_size / 2) + 1] == RED ||
+            state.board[i + 1][Math.floor(hex_size / 2) + 1] == RED
+          ) {
+            Redcount++;
+          }
+        }
+        // ! =============== Process ===========================
+        // ! =========== End Process ===========================
+
+        // ! =============== Process ===========================
+        let distanceL = Math.abs(0 - j);
+        let distanceR = Math.abs(j - (hex_size - 1));
+        Bluecount -= distanceL + distanceR - wallCount;
+        // Bluecount -= distanceL + distanceR;
+
+        let distanceT = Math.abs(0 - i);
+        let distanceB = Math.abs(i - (hex_size - 1));
+        Redcount -= distanceT + distanceB - wallCount;
+        // Redcount -= distanceT + distanceB;
+        // ! =========== End Process ===========================
       }
     }
     if (this.player == RED) {
-      return -redWallCount;
+      return Redcount;
     } else {
-      return -blueWallCount;
+      return Bluecount;
     }
+    // ! =========== End Process ===========================
   }
-
-  _evaluate(state) {
+  __evaluate(state, action) {
     // a dummy evaluation function that
+
     // encourages the agent to not put piece agaist the wall
     let blueWallCount = 0;
     let redWallCount = 0;
@@ -118,6 +281,11 @@ class Agent {
     } else {
       return -blueWallCount;
     }
+  }
+
+  // ! =========== End EVALUATION FUNCTIONS ================
+  _evaluate(state) {
+    return Math.random();
   }
 }
 
@@ -237,10 +405,9 @@ class HexGameState {
 
     for (let i = 0; i < this.hex_size; i++) {
       for (let u = 0; u < this.hex_size; u++) {
-        // check if BLUE wins
         let subset1 = blueDSU.find(i + ",0");
         let subset2 = blueDSU.find(u + "," + (this.hex_size - 1));
-        // console.log([subset1, subset2])
+        // console.log([subset1, subset2]);
         if (subset1 == subset2 && this.board[i][0] == BLUE) {
           this._winner = BLUE;
           break;

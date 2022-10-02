@@ -1,4 +1,4 @@
-let TIMELIMIT = 10000; // 10s
+let TIMELIMIT = 20000; // 10s
 let PROPERNAME = "E";
 function setUpControl() {
   button = createButton("START");
@@ -8,7 +8,7 @@ function setUpControl() {
 
     // ! ======== Blue Option ========
 
-    let blueAgent = "players/Potter-alpha-beta.js";
+    let blueAgent = "AlphaBeta/Potter-alpha-beta.js";
     // let blueAgent = "players/nor-minimax.js";
 
     // ! =============================
