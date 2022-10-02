@@ -2,31 +2,31 @@ let TIMELIMIT = 10000; // 10s
 let PROPERNAME = "E";
 function setUpControl() {
   button = createButton("START");
-  button.position(300, 10);
+  button.position(630, 10);
   button.mousePressed(async () => {
     button.remove();
 
     // ! ======== Blue Option ========
+
+    let blueAgent = "players/Potter-alpha-beta.js";
     // let blueAgent = "players/nor-minimax.js";
-    let blueAgent = "AlphaBeta/nor-alpha-beta.js";
+
     // ! =============================
 
     // ! ======== Red Option =========
+
+    // let redAgent = "players/nor-random.js";
     let redAgent = "players/nor-minimax.js";
-    // let redAgent = "teamname/nor-alpha-beta.js";
+
     // ! =============================
 
     while (!GAMESTATE.isTerminal()) {
       let curAgent = redAgent;
-      PROPERNAME = "RED";
       if (GAMESTATE.player == RED) {
         curAgent = blueAgent;
-        PROPERNAME = "BLUE";
       }
-      //   console.log(curPlayer.player)
       let action = await takeTurn(curAgent);
       GAMESTATE = GAMESTATE.transition(action);
-      console.log(PROPERNAME, ":", action);
       redraw();
     }
   });

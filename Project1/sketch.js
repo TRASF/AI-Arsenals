@@ -13,7 +13,7 @@ let BLUE = "b";
 let EMPTY = "e";
 
 // ! Variable for map size.
-let hex_size = 5; // 5, 7, or 11 are possible
+let hex_size = 11; // 5, 7, or 11 are possible
 
 // ! Variable for players and emyty space appearance.
 let colors = { r: "#ff0000", b: "#0000ff", e: "#ffffff" };
@@ -115,17 +115,17 @@ function render_state(state) {
 
   fill(0);
   noStroke();
-  text("Alpha-Beta vs Minimax", 500, r);
+  text("Alpha-Beta vs Minimax", 550, r);
   if (
     GAMESTATE.player == "b" ? (currentPlayer = "Blue") : (currentPlayer = "Red")
   );
-  text("Current player:" + currentPlayer, 500, 50);
+  text("Current player: " + currentPlayer, 550, 50);
   let Winner = "None";
   if (state.isTerminal()) {
     state._winner == "b" ? (Winner = "Blue") : (Winner = "Red");
-    text("Winner: " + Winner, 500, r * 3.5);
-    text("RED" + "'s Utility: " + state.utility(RED), 500, r * 4.5);
-    text("BLUE" + "'s Utility: " + state.utility(BLUE), 500, r * 5.5);
+    text("Winner: " + Winner, 550, r * 4);
+    text("RED" + "'s Utility: " + state.utility(RED), 550, r * 5);
+    text("BLUE" + "'s Utility: " + state.utility(BLUE), 550, r * 6);
   }
 }
 // ! Click handler function.

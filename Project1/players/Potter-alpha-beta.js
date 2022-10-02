@@ -2,13 +2,13 @@
 // EXAMPLE AGENT: YOU CAN COPY AND MODIFY THIS AGENT
 // ========================================================
 
-let alpha = Number.POSITIVE_INFINITY;
 let beta = Number.NEGATIVE_INFINITY;
-
+let alpha = Number.POSITIVE_INFINITY;
 class Agent {
   constructor(player) {
     this.player = player;
     this.curBestMove = null;
+    // ! [5: , 7:, 11: 7]
     this.depthLimit = 2;
   }
 
@@ -22,10 +22,10 @@ class Agent {
       this.depthLimit = 4;
     }
     if (actions.length < 10) {
-      this.depthLimit = 6;
+      this.depthLimit = 3;
     }
     if (actions.length < 6) {
-      this.depthLimit = 8;
+      this.depthLimit = 3;
     }
 
     // ! ==== End Dept limit ======
@@ -35,20 +35,23 @@ class Agent {
     // ! =============== Process ===========================
 
     this.curBestMove = actions[0];
+    console.log(actions.length);
     for (let i = 0; i < actions.length; i++) {
       let action = actions[i];
       let newState = initial_state.transition(action);
+      // console.log("Alpha", alpha, "Beta", beta);
       let minimaxVal = this.minVal(newState, 1, action);
       if (minimaxVal > curMaxVal) {
         curMaxVal = minimaxVal;
         this.curBestMove = action;
-        console.log("Aplha-Beta Option:", action, minimaxVal, "...");
-        console.log(
-          "Alpha-Beta Best Move: ",
-          action.i,
-          action.j,
-          " with " + minimaxVal
-        );
+        // console.log("Aplha-Beta Option:", action, minimaxVal, "...");
+        // console.log(
+        // this.player,
+        // "Alpha-Beta Best Move: ",
+        // action.i,
+        // action.j,
+        // " with " + minimaxVal
+        // );
         keepBestMove(action);
       }
     }
@@ -65,6 +68,7 @@ class Agent {
 
     // ! End loop condition
     if (depth >= this.depthLimit) return this.evaluate(state, action);
+
     let minimaxVal = Number.POSITIVE_INFINITY;
     let actions = state.actions();
 
@@ -76,16 +80,15 @@ class Agent {
         minimaxVal,
         this.maxVal(newState, depth + 1, action)
       );
-      beta = minimaxVal;
 
       // ! ======== Implement Part ==============
 
-      if (minimaxVal <= alpha) return minimaxVal;
+      beta = minimaxVal;
       if (beta <= alpha) break;
 
       // ! ======= End Implement Part ===========
     }
-    return beta;
+    return minimaxVal;
   }
 
   maxVal(state, depth, action) {
@@ -107,12 +110,13 @@ class Agent {
       );
 
       // ! ======== Implement Part ==============
-      if (minimaxVal >= beta) return minimaxVal;
-      alpha = Math.max(alpha, minimaxVal);
+
+      alpha = minimaxVal;
       if (beta <= alpha) break;
+
       // ! ======= End Implement Part ===========
     }
-    return alpha;
+    return minimaxVal;
   }
 
   // ! =============== EVALUATION FUNCTIONS ===============
@@ -129,7 +133,11 @@ class Agent {
    *
    */
   evaluate(state, action) {
+    let Bluecount = 0;
+    let Redcount = 0;
     let hex_size = state.hex_size;
+    let SurroundRows = [-1, -1, 0, 0, 1, 1];
+    let SurroundCols = [0, 1, -1, 1, -1, 0];
 
     // ! CALL CHECK WALL FUNCTION
     let wallCount = this._evaluate(state);
@@ -143,12 +151,40 @@ class Agent {
 
     for (let i = 0; i < hex_size; i++) {
       for (let j = 0; j < hex_size; j++) {
-        // ! CHECK WALL CONDITION
-        if (action.i == i && action.j < hex_size - 1) return wallCount;
+        if (state.board[i][j] == BLUE) {
+          // ! Check for surround neighbor
+          for (let k = 0; k < 6; k++) {
+            try {
+              if (state.board[i + SurroundRows[k]][j + SurroundCols[k]] == BLUE)
+                Bluecount++;
+            } catch (error) {}
+          }
+          let distanceL = Math.abs(0 - j);
+          let distanceR = Math.abs(j - (hex_size - 1));
+          // Bluecount -= distanceL + distanceR - wallCount;
+          Bluecount -= distanceL + distanceR;
+        } else if (state.board[i][j] == RED) {
+          for (let k = 0; k < 6; k++) {
+            try {
+              if (state.board[i + SurroundRows[k]][j + SurroundCols[k]] == RED)
+                Redcount++;
+            } catch (error) {}
+          }
+          let distanceT = Math.abs(0 - i);
+          let distanceB = Math.abs(i - (hex_size - 1));
+          // Redcount -= distanceT + distanceB - wallCount;
+          Redcount -= distanceT + distanceB;
+        }
       }
     }
 
     // ! =========== End Process ===========================
+
+    if (this.player == BLUE) {
+      return Bluecount;
+    } else {
+      return Redcount;
+    }
   }
   __evaluate(state, action) {
     // a dummy evaluation function that

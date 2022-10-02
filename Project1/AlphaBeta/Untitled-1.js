@@ -1,7 +1,7 @@
 let blueCount = 0;
 let redCount = 0;
 let hex_size = state.hex_size;
-// console.log(action);
+// console.log( `action);
 if (
   action.i == Math.floor(hex_size / 2) &&
   action.j == Math.floor(hex_size / 2)
